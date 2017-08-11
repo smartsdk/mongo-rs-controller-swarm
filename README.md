@@ -33,3 +33,6 @@ The controller that maintain the status of the replica-set should be deployed in
 - [ ] Add healthchecks to docker compose for MongoDB
 - [ ] Add a test suite (possibly with TravisCI - even though it may work only for a single node cluster)
 - [ ] Add utilities to launch a Swarm Cluster to allow 1 click test
+
+## Contributions
+Contributions are welcome in the form of pull request.
