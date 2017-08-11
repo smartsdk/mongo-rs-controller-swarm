@@ -1,0 +1,56 @@
+version: '3.2'
+
+services:
+
+    mongo:
+      image: mongo:${MONGO_VERSION:-3.2}
+      entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
+      ports:
+        - "${MONGO_PORT:-27017}:27017"
+      # the usage of volume provide persistency, but may work correctly only if 1 volume per node (that's way global mode is reccomended)
+      volumes:
+        - mongodata:/data/db
+      networks:
+        - backend
+      deploy:
+        mode: global
+        restart_policy:
+          condition: on-failure
+        update_config:
+          parallelism: 1
+          delay: 1m30s
+
+    mongo-controller:
+      image: martel/mongo-replica-ctrl:test
+      volumes:
+        # TODO: Avoid exposing the docker socket (security issue)
+        - /var/run/docker.sock:/var/run/docker.sock
+      environment:
+        - OVERLAY_NETWORK_NAME=${OVERLAY_NETWORK_NAME:-mongo_backend}
+        - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
+        - REPLICASET_NAME=${REPLICASET_NAME:-rs}
+        - MONGO_PORT=27017
+      entrypoint: python /src/replica_ctrl.py
+      networks:
+          - backend
+      depends_on:
+          - "mongo"
+      deploy:
+        mode: replicated
+        replicas: 1
+        placement:
+          constraints: [node.role==manager]
+        restart_policy:
+          condition: on-failure
+
+volumes:
+  #External true ensure that the volume is not re-created if already present
+  mongodata:
+    external: true
+
+networks:
+    default:
+        driver_opts:
+            com.docker.network.driver.mtu: ${DOCKER_MTU:-1500}
+    backend:
+        driver: overlay
