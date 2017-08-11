@@ -21,7 +21,7 @@ services:
           delay: 1m30s
 
     mongo-controller:
-      image: martel/mongo-replica-ctrl:test
+      image: martel/mongo-replica-ctrl:latest
       volumes:
         # TODO: Avoid exposing the docker socket (security issue)
         - /var/run/docker.sock:/var/run/docker.sock
