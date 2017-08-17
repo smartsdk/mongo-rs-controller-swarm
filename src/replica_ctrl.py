@@ -105,6 +105,7 @@ def init_replica(mongo_tasks_ips, replicaset_name, mongo_port):
     try:
         res = primary.admin.command("replSetInitiate", config)
     except PyMongoError as pme:
+        # TODO: Check this scenario https://github.com/smartsdk/mongo-rs-controller-swarm/pull/2/files/1810ceab3fad32cf7079eb007cd3a4e1aff0ff24#r133695756
         logger.error("replSetInitiate failed ({})".format(pme))
         sys.exit(1)
     finally:
@@ -136,6 +137,8 @@ def gather_configured_members_ips(mongo_tasks_ips, mongo_port):
             config = mc.admin.command("replSetGetConfig")['config']
             for m in config['members']:
                 current_ips.add(m['host'].split(":")[0])
+            # Let's accept the first configuration found. Read as room for improvement!
+            break
         finally:
             mc.close()
     logger = logging.getLogger(__name__)
@@ -157,8 +160,7 @@ def get_primary_ip(tasks_ips, mongo_port):
             mc.close()
 
     if len(primary_ips) > 1:
-        logger.error("ERROR: Multiple primaries were found. I.e, replicaset was split")
-        sys.exit(1)
+        logger.warning("Multiple primaries were found ({}). Let's use the first.".format(primary_ips))
 
     return primary_ips[0]
 
@@ -210,11 +212,16 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
 
         if to_add:
             logger.info("To add: {}".format(to_add))
-            offset = max([m['_id'] for m in config['members']]) + 1
+
+            if config['members']:
+                offset = max([m['_id'] for m in config['members']]) + 1
+            else:
+                offset = 0
+
             for i, ip in enumerate(to_add):
                 config['members'].append({
-                  '_id': offset + i,
-                  'host': "{}:{}".format(ip, mongo_port)
+                    '_id': offset + i,
+                    'host': "{}:{}".format(ip, mongo_port)
                 })
 
         config['version'] += 1
@@ -222,10 +229,10 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
 
         # Apply new config
         res = cli.admin.command("replSetReconfig", config, force=force)
-
+        logger.info("replSetReconfig: {}".format(res))
     finally:
         cli.close()
-    logger.info("replSetReconfig: {}".format(res))
+
 
 
 def manage_replica(mongo_service, overlay_network_name, replicaset_name, mongo_port):
