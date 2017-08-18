@@ -7,7 +7,7 @@ services:
       entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
       ports:
         - "${MONGO_PORT:-27017}:27017"
-      # the usage of volume provide persistency, but may work correctly only if 1 volume per node (that's way global mode is reccomended)
+      # The usage of volume provides persistence, but may work correctly only with 1 volume per node (that's why global mode is recommended)
       volumes:
         - mongodata:/data/db
       networks:
@@ -44,7 +44,7 @@ services:
           condition: on-failure
 
 volumes:
-  #External true ensure that the volume is not re-created if already present
+  # External true ensures that the volume is not re-created if already present
   mongodata:
     external: true
 
