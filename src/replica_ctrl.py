@@ -51,8 +51,8 @@ def get_required_env_variables():
 
 
 def get_mongo_service(dc, mongo_service_name):
-    mongo_services = dc.services.list(filters={'name': mongo_service_name})
-    assert len(mongo_services) <= 1, "Unexpected: 2 docker services with the same name"
+    mongo_services = [s for s in dc.services.list() if s.name == mongo_service_name]
+    assert len(mongo_services) <= 1, "Unexpected: multiple docker services with the same name '{}': {}".format(mongo_service_name, mongo_services)
 
     if mongo_services:
         return mongo_services[0]
@@ -148,7 +148,6 @@ def gather_configured_members_ips(mongo_tasks_ips, mongo_port):
 
 def get_primary_ip(tasks_ips, mongo_port):
     logger = logging.getLogger(__name__)
-    logger.info("Searching primary")
 
     primary_ips = []
     for t in tasks_ips:
@@ -162,7 +161,9 @@ def get_primary_ip(tasks_ips, mongo_port):
     if len(primary_ips) > 1:
         logger.warning("Multiple primaries were found ({}). Let's use the first.".format(primary_ips))
 
-    return primary_ips[0]
+    if primary_ips:
+        logger.info("Primary is: {}".format(primary_ips[0]))
+        return primary_ips[0]
 
 
 def update_config(primary_ip, current_ips, new_ips, mongo_port):
@@ -173,9 +174,6 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
     assert to_remove or to_add
 
     logger = logging.getLogger(__name__)
-    logger.info("To remove {}".format(to_remove))
-    logger.info("To add {}".format(to_add))
-
     force = False
     if primary_ip in to_remove:
         logger.info("Primary ({}) no longer available".format(primary_ip))
@@ -232,7 +230,6 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
         logger.info("replSetReconfig: {}".format(res))
     finally:
         cli.close()
-
 
 
 def manage_replica(mongo_service, overlay_network_name, replicaset_name, mongo_port):
