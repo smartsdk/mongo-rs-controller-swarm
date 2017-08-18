@@ -197,7 +197,7 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
     cli = pm.MongoClient(primary_ip, mongo_port)
     try:
         config = cli.admin.command("replSetGetConfig")['config']
-        logger.info("Old Members: {}".format(config['members']))
+        logger.debug("Old Members: {}".format(config['members']))
 
         if to_remove:
             # Note: As of writing, when a node goes down with a task running
@@ -206,7 +206,6 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
             logger.info("To remove: {}".format(to_remove))
             new_members = [m for m in config['members'] if m['host'].split(":")[0] not in to_remove]
             config['members'] = new_members
-            logger.info("Members after remove: {}".format(config['members']))
 
         if to_add:
             logger.info("To add: {}".format(to_add))
@@ -223,7 +222,7 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
                 })
 
         config['version'] += 1
-        logger.info("New config: {}".format(config))
+        logger.debug("New config: {}".format(config))
 
         # Apply new config
         res = cli.admin.command("replSetReconfig", config, force=force)
@@ -254,7 +253,7 @@ def manage_replica(mongo_service, overlay_network_name, replicaset_name, mongo_p
     # Get mongo tasks ips
     mongo_tasks = get_running_tasks(mongo_service)
     mongo_tasks_ips = get_tasks_ips(mongo_tasks, overlay_network_name)
-    logger.info("Mongo tasks ips: {}".format(mongo_tasks_ips))
+    logger.debug("Mongo tasks ips: {}".format(mongo_tasks_ips))
 
     current_member_ips = gather_configured_members_ips(mongo_tasks_ips, mongo_port)
     primary_ip = get_primary_ip(current_member_ips, mongo_port)
@@ -276,13 +275,15 @@ def manage_replica(mongo_service, overlay_network_name, replicaset_name, mongo_p
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    dc = docker.from_env()
-
     # INPUT: Via environment variables
+    dc = docker.from_env()
     envs = get_required_env_variables()
     mongo_service_name = envs.pop('mongo_service_name')
+
+    # Simple logging
+    if 'DEBUG' is os.environ:
+        logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
     logger.info('Waiting mongo service (and tasks) ({}) to start'.format(mongo_service_name))
 
     # Make sure Mongo is up and running
