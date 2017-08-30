@@ -130,6 +130,7 @@ def create_mongo_config(tasks_ips, replicaset_name, mongo_port):
 
 def gather_configured_members_ips(mongo_tasks_ips, mongo_port):
     current_ips = set()
+    logger = logging.getLogger(__name__)
     for t in mongo_tasks_ips:
         mc = pm.MongoClient(t, mongo_port)
         try:
@@ -140,9 +141,10 @@ def gather_configured_members_ips(mongo_tasks_ips, mongo_port):
             break
         except ServerSelectionTimeoutError as ssete:
             logger.debug("cannot connect to {} to get configuration, failed ({})".format(t,ssete))
+        except OperationFailure as of:
+            logger.debug("no configuration found in node {} ({})".format(t,of))
         finally:
             mc.close()
-    logger = logging.getLogger(__name__)
     logger.debug("Current members in mongo configurations: {}".format(current_ips))
     return current_ips
 
@@ -157,6 +159,8 @@ def get_primary_ip(tasks_ips, mongo_port):
                 primary_ips.append(t)
         except ServerSelectionTimeoutError as ssete:
             logger.debug("cannot connect to {} check if primary, failed ({})".format(t,ssete))
+        except OperationFailure as of:
+            logger.debug("no configuration found in node {} ({})".format(t,of))
         finally:
             mc.close()
 
