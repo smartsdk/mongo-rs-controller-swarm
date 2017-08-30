@@ -2,40 +2,40 @@
 
 testScaleUpMongo(){
    docker service scale mongo_mongo=4
-   sleep 10
-   result = docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}"
+   sleep 100
+   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
    assertEquals "mongo_mongo:4/4" "${result}"
 }
 
 testMongoClusterStatusAfterScaleUp(){
    sleep 10
-   result = mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['ok']"
+   result=$(mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['ok']")
    assertEquals "1" "${result}"
 }
 
 testMongoClusterSizeAfterScaleUp(){
    sleep 10
-   result = mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['members'].length"
+   result=$(mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['members'].length")
    assertEquals "4" "${result}"
 }
 
 testScaleDownMongo(){
    docker service scale mongo_mongo=3
-   sleep 10
-   result = docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}"
+   sleep 100
+   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
    assertEquals "mongo_mongo:3/3" "${result}"
 }
 
 
 testMongoClusterStatusAfterScaleDown(){
    sleep 10
-   result = mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['ok']"
+   result=$(mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['ok']")
    assertEquals "1" "${result}"
 }
 
 testMongoClusterSizeAfterScaleDown(){
    sleep 10
-   result = mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['members'].length"
+   result=$(mongo --quiet localhost/admin --eval "db.runCommand( { replSetGetStatus : 1 } )['members'].length")
    assertEquals "3" "${result}"
 }
 
