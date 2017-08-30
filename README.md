@@ -21,6 +21,7 @@ The controller that maintain the status of the replica-set should be deployed in
 
 ## Features
 - [x] The script is able to connect to a pre-existing replica-set
+- [x] The docker compose recipe include a simple healthcheck script for MongoDB
 - [x] The script is able to detect a new primary node
 - [x] The script is able to force the election of a new primary node, when the replica-set is inconsistent
 - [x] The script is able to build a replica-set from scratch
@@ -30,7 +31,6 @@ The controller that maintain the status of the replica-set should be deployed in
 
 ## To do
 - [ ] Support authentication
-- [ ] Add healthchecks to docker compose for MongoDB
 - [ ] Add a test suite (possibly with TravisCI - even though it may work only for a single node cluster)
 - [ ] Add utilities to launch a Swarm Cluster to allow 1 click test
 

@@ -12,6 +12,15 @@ services:
         - mongodata:/data/db
       networks:
         - backend
+      secrets:
+      # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+        - mongo-healthcheck
+      # it simply checks that the client can connect to mongo. No test is run w.r.t. the cluster.
+      healthcheck:
+          test: ["CMD", "bash", "/run/secrets/mongo-healthcheck"]
+          interval: 1m
+          timeout: 10s
+          retries: 3
       deploy:
         mode: global
         restart_policy:
@@ -30,6 +39,7 @@ services:
         - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
         - REPLICASET_NAME=${REPLICASET_NAME:-rs}
         - MONGO_PORT=27017
+        - # DEBUG #uncomment to test the script
       entrypoint: python /src/replica_ctrl.py
       networks:
           - backend
@@ -43,6 +53,11 @@ services:
         restart_policy:
           condition: on-failure
 
+secrets:
+  # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+  mongo-healthcheck:
+    file: mongo-healthcheck
+
 volumes:
   # External true ensures that the volume is not re-created if already present
   mongodata:
@@ -54,3 +69,4 @@ networks:
             com.docker.network.driver.mtu: ${DOCKER_MTU:-1500}
     backend:
         driver: overlay
+        # external: true # uncomment if you want to re-use and existing network! if not it will create a network dedicated to the stack!
