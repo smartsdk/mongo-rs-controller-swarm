@@ -1,0 +1,65 @@
+version: '3.2'
+
+services:
+
+    mongo:
+      image: mongo:${MONGO_VERSION:-3.2}
+      entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
+      ports:
+        - "${MONGO_PORT:-27017}:27017"
+      networks:
+        - backend
+      secrets:
+      # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+        - mongo-healthcheck
+      # it simply checks that the client can connect to mongo. No test is run w.r.t. the cluster.
+      healthcheck:
+          test: ["CMD", "bash", "/run/secrets/mongo-healthcheck"]
+          interval: 1m
+          timeout: 10s
+          retries: 3
+      deploy:
+        mode: replicated
+        replicas: 3
+        restart_policy:
+          condition: on-failure
+        update_config:
+          parallelism: 1
+          delay: 1m30s
+
+    controller:
+      image: martel/mongo-replica-ctrl:travis
+      volumes:
+        # TODO: Avoid exposing the docker socket (security issue)
+        - /var/run/docker.sock:/var/run/docker.sock
+      environment:
+        - OVERLAY_NETWORK_NAME=${OVERLAY_NETWORK_NAME:-mongo_backend}
+        - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
+        - REPLICASET_NAME=${REPLICASET_NAME:-rs}
+        - MONGO_PORT=27017
+        - DEBUG #uncomment to test the script
+      entrypoint: python /src/replica_ctrl.py
+      networks:
+          - backend
+      depends_on:
+          - "mongo"
+      deploy:
+        mode: replicated
+        replicas: 1
+        placement:
+          constraints: [node.role==manager]
+        restart_policy:
+          condition: on-failure
+
+secrets:
+  # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+  mongo-healthcheck:
+    file: mongo-healthcheck
+
+networks:
+    default:
+        driver_opts:
+            com.docker.network.driver.mtu: ${DOCKER_MTU:-1500}
+    backend:
+        driver: overlay
+        # external: true # uncomment if you want to re-use and existing network! if not it will create a network dedicated to the stack!

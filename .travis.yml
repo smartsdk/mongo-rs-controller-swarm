@@ -1,0 +1,21 @@
+language: shell
+
+services:
+  - docker
+  - mongodb
+
+addons:
+  apt:
+    packages:
+      - mongodb-org-shell
+
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y shunit2
+  - docker build . -t martel/mongo-replica-ctrl:travis
+  - docker swarm init
+  - docker stack deploy -c test/docker-compose.yml mongo
+
+script:
+  - sh test/ci-test-running-basic.sh
+  - sh test/ci-test-scale-basic.sh
