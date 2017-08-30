@@ -27,12 +27,12 @@ The controller that maintain the status of the replica-set should be deployed in
 - [x] The script is able to build a replica-set from scratch
 - [x] The script is able to add and remove nodes dynamically according to the evolution of the swarm cluster
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
-
+- [X] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
 
 ## To do
 - [ ] Support authentication
-- [ ] Add a test suite (possibly with TravisCI - even though it may work only for a single node cluster)
 - [ ] Add utilities to launch a Swarm Cluster to allow 1 click test
+- [ ] Add Travis CI tests to tests mongo primary and secondary container failure 
 
 ## Contributions
 Contributions are welcome in the form of pull request.
