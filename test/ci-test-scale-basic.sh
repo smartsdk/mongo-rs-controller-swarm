@@ -2,7 +2,7 @@
 
 testScaleUpMongo(){
    docker service scale mongo_mongo=4
-   sleep 60
+   sleep 100
    result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
    assertEquals "mongo_mongo:4/4" "${result}"
 }
@@ -21,7 +21,7 @@ testMongoClusterSizeAfterScaleUp(){
 
 testScaleDownMongo(){
    docker service scale mongo_mongo=3
-   sleep 60
+   sleep 100
    result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
    assertEquals "mongo_mongo:3/3" "${result}"
 }

@@ -15,7 +15,7 @@ testControllerIsRunning(){
 }
 
 testMongoReplicas(){
-   sleep 10
+   sleep 120 #time needed to download mongo image and start it
    result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
    assertEquals "mongo_mongo:3/3" "${result}"
 }
