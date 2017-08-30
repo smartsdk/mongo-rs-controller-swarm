@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.1'
 
 services:
 
@@ -7,9 +7,6 @@ services:
       entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
       ports:
         - "${MONGO_PORT:-27017}:27017"
-      # The usage of volume provides persistence, but may work correctly only with 1 volume per node (that's why global mode is recommended)
-      volumes:
-        - mongodata:/data/db
       networks:
         - backend
       secrets:
@@ -22,15 +19,16 @@ services:
           timeout: 10s
           retries: 3
       deploy:
-        mode: global
+        mode: replicated
+        replicas: 3
         restart_policy:
           condition: on-failure
         update_config:
           parallelism: 1
           delay: 1m30s
 
-    mongo-controller:
-      image: martel/mongo-replica-ctrl:latest
+    controller:
+      image: martel/mongo-replica-ctrl:travis
       volumes:
         # TODO: Avoid exposing the docker socket (security issue)
         - /var/run/docker.sock:/var/run/docker.sock
@@ -39,7 +37,7 @@ services:
         - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
         - REPLICASET_NAME=${REPLICASET_NAME:-rs}
         - MONGO_PORT=27017
-        - # DEBUG #uncomment to test the script
+        - DEBUG #uncomment to test the script
       entrypoint: python /src/replica_ctrl.py
       networks:
           - backend
@@ -57,11 +55,6 @@ secrets:
   # to avoid changes to the original mongo image, we import the healthcheck script using secrets
   mongo-healthcheck:
     file: mongo-healthcheck
-
-volumes:
-  # External true ensures that the volume is not re-created if already present
-  mongodata:
-    external: true
 
 networks:
     default:
