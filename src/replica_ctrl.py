@@ -23,7 +23,7 @@ INPUT: Via environment variables. See get_required_env_variables.
 
 # TODO: Add tests
 """
-from pymongo.errors import PyMongoError
+from pymongo.errors import PyMongoError, OperationFailure, ServerSelectionTimeoutError
 import docker
 import logging
 import os
@@ -97,17 +97,16 @@ def init_replica(mongo_tasks_ips, replicaset_name, mongo_port):
     """
     config = create_mongo_config(mongo_tasks_ips, replicaset_name, mongo_port)
     logger = logging.getLogger(__name__)
-    logger.info("Initial config: {}".format(config))
+    logger.debug("Initial config: {}".format(config))
 
     # Choose a primary and configure replicaset
     primary_ip = list(mongo_tasks_ips)[0]
     primary = pm.MongoClient(primary_ip, mongo_port)
     try:
         res = primary.admin.command("replSetInitiate", config)
-    except PyMongoError as pme:
-        # TODO: Check this scenario https://github.com/smartsdk/mongo-rs-controller-swarm/pull/2/files/1810ceab3fad32cf7079eb007cd3a4e1aff0ff24#r133695756
-        logger.error("replSetInitiate failed ({})".format(pme))
-        sys.exit(1)
+    except OperationFailure as e:
+        logger.debug("replSetInitiate already configured, forcing configuration ({})".format(e))
+        res = primary.admin.command("replSetReconfig", config, force=True)
     finally:
         primary.close()
 
@@ -139,12 +138,13 @@ def gather_configured_members_ips(mongo_tasks_ips, mongo_port):
                 current_ips.add(m['host'].split(":")[0])
             # Let's accept the first configuration found. Read as room for improvement!
             break
+        except ServerSelectionTimeoutError as ssete:
+            logger.debug("cannot connect to {} to get configuration, failed ({})".format(t,ssete))
         finally:
             mc.close()
     logger = logging.getLogger(__name__)
-    logger.info("Current members in mongo configurations: {}".format(current_ips))
+    logger.debug("Current members in mongo configurations: {}".format(current_ips))
     return current_ips
-
 
 def get_primary_ip(tasks_ips, mongo_port):
     logger = logging.getLogger(__name__)
@@ -155,6 +155,8 @@ def get_primary_ip(tasks_ips, mongo_port):
         try:
             if mc.is_primary:
                 primary_ips.append(t)
+        except ServerSelectionTimeoutError as ssete:
+            logger.debug("cannot connect to {} check if primary, failed ({})".format(t,ssete))
         finally:
             mc.close()
 
@@ -175,8 +177,8 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
 
     logger = logging.getLogger(__name__)
     force = False
-    if primary_ip in to_remove:
-        logger.info("Primary ({}) no longer available".format(primary_ip))
+    if primary_ip in to_remove or primary_ip is None:
+        logger.debug("Primary ({}) no longer available".format(primary_ip))
         force = True
 
         # Let's see if a new primary was elected
@@ -186,13 +188,13 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
             time.sleep(10)
             primary_ip = get_primary_ip(list(new_ips), mongo_port)
             attempts -= 1
-            logger.info("No new primary yet automatically elected...".format(primary_ip))
+            logger.debug("No new primary yet automatically elected...".format(primary_ip))
 
         if primary_ip is None:
             # If not, let's find the first mongo that is member of the old cluster
             old_members = list(new_ips - to_add)
             primary_ip = old_members[0] if old_members else new_ips[0]
-            logger.info("Choosing {} as the new primary".format(primary_ip))
+            logger.debug("Choosing {} as the new primary".format(primary_ip))
 
     cli = pm.MongoClient(primary_ip, mongo_port)
     try:
@@ -226,7 +228,7 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
 
         # Apply new config
         res = cli.admin.command("replSetReconfig", config, force=force)
-        logger.info("replSetReconfig: {}".format(res))
+        logger.info("new replSetReconfig: {}".format(res))
     finally:
         cli.close()
 
@@ -256,10 +258,13 @@ def manage_replica(mongo_service, overlay_network_name, replicaset_name, mongo_p
     logger.debug("Mongo tasks ips: {}".format(mongo_tasks_ips))
 
     current_member_ips = gather_configured_members_ips(mongo_tasks_ips, mongo_port)
+    logger.debug("Current mongo ips: {}".format(current_member_ips))
     primary_ip = get_primary_ip(current_member_ips, mongo_port)
+    logger.debug("Current primary ip: {}".format(primary_ip))
 
     if len(current_member_ips) == 0:
         # Starting from the scratch
+        logger.info("No previous valid configuration, starting replicaset from scratch")
         current_member_ips = set(mongo_tasks_ips)
         init_replica(current_member_ips, replicaset_name, mongo_port)
 
@@ -283,6 +288,8 @@ if __name__ == '__main__':
     # Simple logging
     if 'DEBUG' is os.environ:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     logger.info('Waiting mongo service (and tasks) ({}) to start'.format(mongo_service_name))
 
@@ -291,7 +298,7 @@ if __name__ == '__main__':
     mongo_service = None
     service_down = True
     while attempts and service_down:
-        time.sleep(10)
+        time.sleep(5)
         mongo_service = get_mongo_service(dc, mongo_service_name)
         service_down = not is_service_up(mongo_service)
         attempts -= 1
