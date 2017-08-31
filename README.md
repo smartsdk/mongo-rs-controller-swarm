@@ -100,6 +100,18 @@ To test the script you need to set-up a Docker Swarm cluster. Assuming that Virt
 * [stop-cluster.sh](utils/stop-cluster.sh) stop a running cluster
 * [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
 
+### Testing
+The script localtest.sh aims to cover the following cases (checked ones are the one covered):
+* [ ] Start a new MongoDB cluster with persistence data and checks that controller configure it correctly.
+* [ ] Kills a MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
+* [ ] Kills a the Primary MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
+* [ ] Stop a Swarm node and checks if the MongoDB cluster status is ok.
+* [ ] Restart a Swarm node and checks if the MongoDB cluster status is ok.
+* [ ] Remove the MongoDB cluster and re-create it to verify that data persistence is not affecting the MongoDB status.
+
+
+Tests starting with `ci-test` are made for the Travis CI, they won't run locally unless you install as well a MongoDB Client.
+
 ## To do
 - [ ] Support authentication to MongoDB
 - [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
