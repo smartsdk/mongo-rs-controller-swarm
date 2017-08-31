@@ -3,7 +3,7 @@
 This repository provides a dockerized controller for a Mongo DB replica-set deployed on a Docker Swarm cluster.
 
 ## How to use
-First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup.
+First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup (See Testing for a local setup).
 Secondly you need to create an overlay network called `backend` (when creating the network and setting up the Swarm cluster, *be careful with MTU issues!* Locally you won't have any, but using cloud providers, you may hit several ones):
 
 * `docker network create  --opt encrypted -d overlay backend`
@@ -83,6 +83,22 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 - [x] The script is able to add and remove nodes dynamically according to the evolution of the swarm cluster
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
 - [x] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
+
+## Testing
+
+### Prerequisites
+
+* A [Docker Swarm cluster](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/) (docker >= 17.06.0-ce) (locally or in the cloud as you prefer).
+* [shunit2](https://github.com/kward/shunit2) installed on your client
+* (Optionally) [VirtualBox](http://virtualbox.org) if you want to use the scripts provided in `utils` folder.
+* Your Docker client configured to point to the Docker Swarm cluster.
+
+### Utilities
+To test the script you need to set-up a Docker Swarm cluster. Assuming that VirtualBox is installed on your Linux/MacOS system you, can use the scripts in the `utils` folder to create and manage the cluster:
+* [create-cluster.sh](utils/create-cluster.sh) creates a Docker Swarm cluster with 1 Manager and 2 Workers (you can change the number of the Workers)
+* [clean-cluster.sh](utils/clean-cluster.sh) delete the cluster
+* [stop-cluster.sh](utils/stop-cluster.sh) stop a running cluster
+* [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
 
 ## To do
 - [ ] Support authentication to MongoDB
