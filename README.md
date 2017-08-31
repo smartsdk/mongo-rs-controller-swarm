@@ -117,7 +117,7 @@ Tests starting with `ci-test` are designed for Travis CI, they won't run locally
 
 ## To do
 - [ ] Support authentication to MongoDB
-- [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
+- [x] Add utilities to launch a Swarm Cluster and allow 1 click test
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
 - [ ] Add some GUI (e.g. [NOSQLClient](https://www.nosqlclient.com/docs/)) to help the monitoring of the MongoDB cluster.
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
