@@ -39,7 +39,7 @@ services:
         - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
         - REPLICASET_NAME=${REPLICASET_NAME:-rs}
         - MONGO_PORT=27017
-        - # DEBUG #uncomment to test the script
+        # - DEBUG #uncomment to debug the script
       entrypoint: python /src/replica_ctrl.py
       networks:
           - backend

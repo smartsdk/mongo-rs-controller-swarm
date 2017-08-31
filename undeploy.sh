@@ -1,3 +1,3 @@
 #!/bin/sh
 docker stack remove mongo
-docker network create rm backend
+docker network rm backend
