@@ -101,23 +101,27 @@ To test the script you need to set-up a Docker Swarm cluster. Assuming that Virt
 * [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
 
 ### Testing
-The script localtest.sh aims to cover the following cases (checked ones are the one covered):
-* [ ] Start a new MongoDB cluster with persistence data and checks that controller configure it correctly.
-* [ ] Kills a MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
+The script [test-locally.sh](test/test-locally.sh) aims to cover the following cases (checked ones are the one covered):
+* [x] Start a new MongoDB cluster with persistence data and checks that the controller configure it correctly.
+* [x] Kills a MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
 * [ ] Kills a the Primary MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
-* [ ] Stop a Swarm node and checks if the MongoDB cluster status is ok.
-* [ ] Restart a Swarm node and checks if the MongoDB cluster status is ok.
+* [x] Stop a Swarm node and checks if the MongoDB cluster status is ok.
+* [x] Restart a Swarm node and checks if the MongoDB cluster status is ok.
 * [ ] Remove the MongoDB cluster and re-create it to verify that data persistence is not affecting the MongoDB status.
 
+You can run the test with:
 
-Tests starting with `ci-test` are made for the Travis CI, they won't run locally unless you install as well a MongoDB Client.
+* `sh test/test-locally.sh`
+
+Tests starting with `ci-test` are designed for Travis CI, they won't run locally, unless you install as well a MongoDB Client.
 
 ## To do
 - [ ] Support authentication to MongoDB
 - [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
-- [ ] Add some GUI that helps the monitoring of the cluster.
+- [ ] Add some GUI (e.g. [NOSQLClient](https://www.nosqlclient.com/docs/)) to help the monitoring of the MongoDB cluster.
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
+- [ ] Tests are not generic in the sense that are based on the swarm node naming used in the `utils` folder
 
 ## Contributions
 Contributions are welcome in the form of pull request.
