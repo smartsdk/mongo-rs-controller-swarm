@@ -121,7 +121,9 @@ testStartSwarmClusterSize(){
 
 testStopSwarmManager(){
   docker node promote swarm-1
+  docker rm -fv client
   eval $(docker-machine env swarm-1)
+  docker run --name client --network=backend -d mongo:3.2 tail -f /dev/null
   docker node update swarm-manager --availability drain
   docker node update swarm-manager --availability pause
   sleep 120 #time needed to kill container
@@ -151,7 +153,9 @@ testStopSwarmManagerClusterSize(){
 
 testStopSwarmManagerRestore(){
   docker node update swarm-manager --availability active
+  docker rm -fv client
   eval $(docker-machine env swarm-manager)
+  docker run --name client --network=backend -d mongo:3.2 tail -f /dev/null
   docker node demote swarm-1
   sleep 120 #time needed to kill container
   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
