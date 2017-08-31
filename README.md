@@ -14,7 +14,7 @@ Then, simply run
 
 * `docker stack deploy -c docker-compose.yml STACK_NAME`
 
-Alternatively, you can use the simple [script](deploy.sh) we created that cover both steps:
+Alternatively, you can use the simple [script](deploy.sh) we created that covers both steps:
 
 * `sh deploy.sh`
 
@@ -46,7 +46,7 @@ To remove the service:
 * `docker stack undeploy STACK_NAME`
 * `docker network rm backend`
 
-You can configure the following environment variables for deploying your stack using the provided [`docker-compose.yml`](docker-compose.yml) file (the variables are used in the controller service, so they ar important, without configuring them, the service won't work correctly):
+You can configure the following environment variables for deploying your stack using the provided [`docker-compose.yml`](docker-compose.yml) file (the variables are used in the controller service, so they are important, without configuring them, the service won't work correctly):
 
 * `MONGO_VERSION`, the default value is `3.2`
 * `REPLICASET_NAME`, the default value is `rs`
@@ -60,13 +60,13 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 
 * To use data persistence (which we recommend in production settings), the *Mongo* service needs to be deployed in **global mode**. This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
-* The *Controller* that maintain the status of the replica-set must be deployed in a single instance over a Swarm manager node. **Multiple instances of the Controller, may perform conflicting actions!** You should ensure that the controller restart in case of error.
+* The *Controller* that maintains the status of the replica-set must be deployed in a single instance over a Swarm manager node. **Multiple instances of the Controller, may perform conflicting actions!** Also, to ensure that the controller is restarted in case of error, there is a restart policy in the the [`docker-compose.yml`](docker-compose.yml).
 
 * For HA purposes in a production environment your Swarm cluster should have more than one manager. This allows the *Controller* to be start on different nodes in case of issues.
 
-* The `docker-compose.yml` make use of an external network since it is meant to be used in combination with other services that access the Mongo replica-set. To secure the access to the Mongo cluster, you can also comment the `Ports` section in the `docker-compose.yml` file.
+* The `docker-compose.yml` makes use of an external network since it is meant to be used in combination with other services that access the Mongo replica-set. To secure the access to the Mongo cluster, you can also comment the `Ports` section in the `docker-compose.yml` file.
 
-* The Mongo [health check script](mongo-healthcheck) serves the only purpose to verify the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *Controller* service.
+* The Mongo [health check script](mongo-healthcheck) serves the only purpose of verifying the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *Controller* service.
 
 * We used *secrets* to pass the MongoDB health check script to the MongoDB containers. While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
 
