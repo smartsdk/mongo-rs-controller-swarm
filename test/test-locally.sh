@@ -200,13 +200,14 @@ testRestartMongoClusterSize(){
 oneTimeTearDown(){
   docker rm -fv client
   docker stack remove mongo
+  sleep 50
   docker network rm backend
   eval $(docker-machine env swarm-manager)
-  docker volume rm mongodata
+  docker volume rm -f mongodata
   eval $(docker-machine env swarm-1)
-  docker volume rm mongodata
+  docker volume rm -f mongodata
   eval $(docker-machine env swarm-2)
-  docker volume rm mongodata
+  docker volume rm -f mongodata
 }
 
 # load shunit2
