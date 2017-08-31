@@ -22,14 +22,23 @@ Allow some time while images are pulled in the nodes and services are deployed. 
 
 ```
 $ docker service ls
-ID                  NAME                     MODE                REPLICAS            IMAGE                            PORTS
-813gplgsyi6z        mongo_mongo              global              3/3                 mongo:3.2                        *:27017->27017/tcp
-g5rxax0gucbn        mongo_mongo-controller   replicated          1/1                 martel/mongo-replica-ctrl:test```  
+ID                  NAME                MODE                REPLICAS            IMAGE                              PORTS
+hmld6tiwr5o0        mongo_mongo         global              0/3                 mongo:3.2                          *:27017->27017/tcp
+uppaix6drfps        mongo_controller    replicated          1/1                 martel/mongo-replica-ctrl:latest   
+```  
 
 You can also check the operations performed by the *controller* reading the logs:
 
 ```
-$ docker service logs -f mongo_mongo-controller
+$ docker service logs -f mongo_controller
+mongo_controller.1.7x6ujhg5naw7@swarm-1    | INFO:__main__:Waiting mongo service (and tasks) (mongo_mongo) to start
+mongo_controller.1.7x6ujhg5naw7@swarm-1    | ERROR:__main__:Expired attempts waiting for mongo service (mongo_mongo)
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:Waiting mongo service (and tasks) (mongo_mongo) to start
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:Mongo service is up and running
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:To remove: {'10.0.0.3', '10.0.0.4'}
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:To add: {'10.0.0.7', '10.0.0.6'}
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:new replSetReconfig: {'ok': 1.0}
+mongo_controller.1.sv8eztwisitz@swarm-manager    | INFO:__main__:Primary is: 10.0.0.6
 ```  
 
 To remove the service:
@@ -37,7 +46,17 @@ To remove the service:
 * `docker stack undeploy STACK_NAME`
 * `docker network rm backend`
 
-Few hints, in case of customization of the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
+You can configure the following environment variables for deploying your stack using the provided [`docker-compose.yml`](docker-compose.yml) file (the variables are used in the controller service, so they ar important, without configuring them, the service won't work correctly):
+
+* `MONGO_VERSION`, the default value is `3.2`
+* `REPLICASET_NAME`, the default value is `rs`
+* `MONGO_PORT`, the default value is `27017`
+* `OVERLAY_NETWORK_NAME`, the default value is `backend`
+* `STACK_NAME`, the default value is `mongo`
+* `MONGO_SERVICE_NAME`, the default value is `${STACK_NAME:}_mongo`
+
+
+Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
 
 * To use data persistence (which we recommend in production settings), the *Mongo* service needs to be deployed in **global mode**. This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
@@ -50,6 +69,10 @@ Few hints, in case of customization of the [`docker-compose.yml`](docker-compose
 * The Mongo [health check script](mongo-healthcheck) serves the only purpose to verify the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *Controller* service.
 
 * We used *secrets* to pass the MongoDB health check script to the MongoDB containers. While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
+
+* If you are not sure if the *controller* is behaving correctly. Enable the `DEBUG` environment variable and check the logs of the container.
+
+* **N.B.** Don't use a service name starting with *mongo* for other services in the same stack. This may result in the controller to think that mongo is running while it is not. This is related to the way filters works in Docker (I consider it a bug). Of course, it can be fixed (see To Dos).
 
 ## Features
 - [x] The script is able to connect to a pre-existing replica-set
@@ -66,6 +89,7 @@ Few hints, in case of customization of the [`docker-compose.yml`](docker-compose
 - [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
 - [ ] Add some GUI that helps the monitoring of the cluster.
+- [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
 
 ## Contributions
 Contributions are welcome in the form of pull request.
