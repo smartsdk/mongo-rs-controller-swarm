@@ -69,4 +69,4 @@ networks:
             com.docker.network.driver.mtu: ${DOCKER_MTU:-1500}
     backend:
         driver: overlay
-        # external: true # uncomment if you want to re-use and existing network! if not it will create a network dedicated to the stack!
+        external: true # comment if you want to use an addhoc network!

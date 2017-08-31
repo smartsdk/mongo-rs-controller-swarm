@@ -1,23 +1,55 @@
-# MongoDB replica-set controller for Swarm Cluster
+# MongoDB replica-set controller for Docker Swarm cluster
 
-This repository provide a dockerized controller for a Mongo db replica-set deployed using a Docker Swarm
+This repository provides a dockerized controller for a Mongo DB replica-set deployed on a Docker Swarm cluster.
 
 ## How to use
 First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup.
-Then, simply run...
+Secondly you need to create an overlay network called `backend` (when creating the network and setting up the Swarm cluster, *be careful with MTU issues!* Locally you won't have any, but using cloud providers, you may hit several ones):
 
-    sh deploy.sh
+* `docker network create  --opt encrypted -d overlay backend`
 
-Allow some time while images are pulled in the nodes and services are deployed. After a couple of minutes, you can check if all services are up, as usual, running...
+(to change the default MTU add `--opt com.docker.network.driver.mtu=MTU_VALUE`)
 
-    $ docker service ls
-    ID                  NAME                     MODE                REPLICAS            IMAGE                            PORTS
-    813gplgsyi6z        mongo_mongo              global              3/3                 mongo:3.2                        *:27017->27017/tcp
-    g5rxax0gucbn        mongo_mongo-controller   replicated          1/1                 martel/mongo-replica-ctrl:test   
+Then, simply run
 
-The mongo service need to be deployed in "global" mode if you want to use storage persistence (this is to avoid that more than one instance is deployed on the same node).
+* `docker stack deploy -c docker-compose.yml STACK_NAME`
 
-The controller that maintain the status of the replica-set should be deployed in 1 single instance over a Swarm manager.
+Alternatively, you can use the simple [script](deploy.sh) we created that cover both steps:
+
+* `sh deploy.sh`
+
+Allow some time while images are pulled in the nodes and services are deployed. After a couple of minutes, you can check if all services are up, as usual, running:
+
+```
+$ docker service ls
+ID                  NAME                     MODE                REPLICAS            IMAGE                            PORTS
+813gplgsyi6z        mongo_mongo              global              3/3                 mongo:3.2                        *:27017->27017/tcp
+g5rxax0gucbn        mongo_mongo-controller   replicated          1/1                 martel/mongo-replica-ctrl:test```  
+
+You can also check the operations performed by the *controller* reading the logs:
+
+```
+$ docker service logs -f mongo_mongo-controller
+```  
+
+To remove the service:
+
+* `docker stack undeploy STACK_NAME`
+* `docker network rm backend`
+
+Few hints, in case of customization of the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
+
+* To use data persistence (which we recommend in production settings), the *Mongo* service needs to be deployed in **global mode**. This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
+
+* The *Controller* that maintain the status of the replica-set must be deployed in a single instance over a Swarm manager node. **Multiple instances of the Controller, may perform conflicting actions!** You should ensure that the controller restart in case of error.
+
+* For HA purposes in a production environment your Swarm cluster should have more than one manager. This allows the *Controller* to be start on different nodes in case of issues.
+
+* The `docker-compose.yml` make use of an external network since it is meant to be used in combination with other services that access the Mongo replica-set. To secure the access to the Mongo cluster, you can also comment the `Ports` section in the `docker-compose.yml` file.
+
+* The Mongo [health check script](mongo-healthcheck) serves the only purpose to verify the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *Controller* service.
+
+* We used *secrets* to pass the MongoDB health check script to the MongoDB containers. While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
 
 ## Features
 - [x] The script is able to connect to a pre-existing replica-set
@@ -27,12 +59,13 @@ The controller that maintain the status of the replica-set should be deployed in
 - [x] The script is able to build a replica-set from scratch
 - [x] The script is able to add and remove nodes dynamically according to the evolution of the swarm cluster
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
-- [X] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
+- [x] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
 
 ## To do
-- [ ] Support authentication
-- [ ] Add utilities to launch a Swarm Cluster to allow 1 click test
-- [ ] Add Travis CI tests to tests mongo primary and secondary container failure 
+- [ ] Support authentication to MongoDB
+- [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
+- [ ] Add Travis CI tests to tests mongo primary and secondary container failure
+- [ ] Add some GUI that helps the monitoring of the cluster.
 
 ## Contributions
 Contributions are welcome in the form of pull request.
