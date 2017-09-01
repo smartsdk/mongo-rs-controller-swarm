@@ -91,6 +91,7 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 * A [Docker Swarm cluster](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/) (docker >= 17.06.0-ce) (locally or in the cloud as you prefer).
 * [shunit2](https://github.com/kward/shunit2) installed on your client
 * (Optionally) [VirtualBox](http://virtualbox.org) if you want to use the scripts provided in `utils` folder.
+* (Optionally) [docker-machine](https://docs.docker.com/machine/install-machine/) if you use the scripts provided in `utils` folder.
 * Your Docker client configured to point to the Docker Swarm cluster.
 
 ### Utilities
@@ -114,6 +115,8 @@ You can run the test with:
 * `sh test/test-locally.sh`
 
 Tests starting with `ci-test` are designed for Travis CI, they won't run locally, unless you install as well a MongoDB Client.
+
+**N.B.:** at the moment tests assumes that nodes in the Docker Swarm cluster are named as in the scripts in the `utils` folder.
 
 ## To do
 - [ ] Support authentication to MongoDB
