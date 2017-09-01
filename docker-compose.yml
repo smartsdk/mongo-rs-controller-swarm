@@ -53,6 +53,25 @@ services:
       restart_policy:
         condition: on-failure
 
+
+  nosqlclient:
+    image: mongoclient/mongoclient:2.2.0 #2.2.0 is the latest stable version
+    environment:
+      - MONGOCLIENT_DEFAULT_CONNECTION_URL=mongodb://${STACK_NAME:-mongo}_mongo:27017/?replicaSet=rs
+    ports:
+      - "3000:3000"
+    networks:
+        - backend
+    depends_on:
+        - "mongo"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role==manager]
+      restart_policy:
+        condition: on-failure
+
 secrets:
   # to avoid changes to the original mongo image, we import the healthcheck script using secrets
   mongo-healthcheck:
