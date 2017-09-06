@@ -3,7 +3,7 @@
 This repository provides a dockerized controller for a Mongo DB replica-set deployed on a Docker Swarm cluster.
 
 ## How to use
-First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup.
+First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup (See Testing for a local setup).
 Secondly you need to create an overlay network called `backend` (when creating the network and setting up the Swarm cluster, *be careful with MTU issues!* Locally you won't have any, but using cloud providers, you may hit several ones):
 
 * `docker network create  --opt encrypted -d overlay backend`
@@ -84,12 +84,47 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
 - [x] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
 
+## Testing
+
+### Prerequisites
+
+* A [Docker Swarm cluster](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/) (docker >= 17.06.0-ce) (locally or in the cloud as you prefer).
+* [shunit2](https://github.com/kward/shunit2) installed on your client
+* (Optionally) [VirtualBox](http://virtualbox.org) if you want to use the scripts provided in `utils` folder.
+* (Optionally) [docker-machine](https://docs.docker.com/machine/install-machine/) if you use the scripts provided in `utils` folder.
+* Your Docker client configured to point to the Docker Swarm cluster.
+
+### Utilities
+To test the script you need to set-up a Docker Swarm cluster. Assuming that VirtualBox is installed on your Linux/MacOS system you, can use the scripts in the `utils` folder to create and manage the cluster:
+* [create-cluster.sh](utils/create-cluster.sh) creates a Docker Swarm cluster with 1 Manager and 2 Workers (you can change the number of the Workers)
+* [clean-cluster.sh](utils/clean-cluster.sh) delete the cluster
+* [stop-cluster.sh](utils/stop-cluster.sh) stop a running cluster
+* [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
+
+### Testing
+The script [test-locally.sh](test/test-locally.sh) aims to cover the following cases (checked ones are the one covered):
+* [x] Start a new MongoDB cluster with persistence data and checks that the controller configure it correctly.
+* [x] Kills a MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
+* [ ] Kills a the Primary MongoDB container and checks if a new container is created and the MongoDB cluster status is ok.
+* [x] Stop a Swarm node and checks if the MongoDB cluster status is ok.
+* [x] Restart a Swarm node and checks if the MongoDB cluster status is ok.
+* [ ] Remove the MongoDB cluster and re-create it to verify that data persistence is not affecting the MongoDB status.
+
+You can run the test with:
+
+* `sh test/test-locally.sh`
+
+Tests starting with `ci-test` are designed for Travis CI, they won't run locally, unless you install as well a MongoDB Client.
+
+**N.B.:** at the moment tests assumes that nodes in the Docker Swarm cluster are named as in the scripts in the `utils` folder.
+
 ## To do
 - [ ] Support authentication to MongoDB
-- [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
+- [x] Add utilities to launch a Swarm Cluster and allow 1 click test
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
-- [ ] Add some GUI that helps the monitoring of the cluster.
+- [ ] Add some GUI (e.g. [NOSQLClient](https://www.nosqlclient.com/docs/)) to help the monitoring of the MongoDB cluster.
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
+- [ ] Tests are not generic in the sense that are based on the swarm node naming used in the `utils` folder
 
 ## Contributions
 Contributions are welcome in the form of pull request.
