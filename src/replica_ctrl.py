@@ -197,7 +197,7 @@ def update_config(primary_ip, current_ips, new_ips, mongo_port):
         if primary_ip is None:
             # If not, let's find the first mongo that is member of the old cluster
             old_members = list(new_ips - to_add)
-            primary_ip = old_members[0] if old_members else new_ips[0]
+            primary_ip = old_members[0] if old_members else list(new_ips)[0]
             logger.debug("Choosing {} as the new primary".format(primary_ip))
 
     cli = pm.MongoClient(primary_ip, mongo_port)
