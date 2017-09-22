@@ -58,19 +58,19 @@ You can configure the following environment variables for deploying your stack u
 
 Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
 
-* To use data persistence (which we recommend in production settings), the *Mongo* service needs to be deployed in **global mode**. This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
+* To use data persistence (which we recommend in production settings), the *mongo* service needs to be deployed in **global mode** (see [`docker-compose.yml` line 5](docker-compose.yml#L5)). This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
-* The *Controller* that maintains the status of the replica-set must be deployed in a single instance over a Swarm manager node. **Multiple instances of the Controller, may perform conflicting actions!** Also, to ensure that the controller is restarted in case of error, there is a restart policy in the the [`docker-compose.yml`](docker-compose.yml).
+* The *controller* that maintains the status of the replica-set must be deployed in a single instance over a Swarm manager node (see [`docker-compose.yml` line 32](docker-compose.yml#L32)). **Multiple instances of the Controller, may perform conflicting actions!** Also, to ensure that the controller is restarted in case of error, there is a restart policy in the the [`docker-compose.yml`](docker-compose.yml#L53).
 
-* For HA purposes in a production environment your Swarm cluster should have more than one manager. This allows the *Controller* to be start on different nodes in case of issues.
+* For HA purposes in a production environment your Swarm cluster should have more than one manager. This allows the *controller* to be start on different nodes in case of issues.
 
-* The `docker-compose.yml` makes use of an external network since it is meant to be used in combination with other services that access the Mongo replica-set. To secure the access to the Mongo cluster, you can also comment the `Ports` section in the `docker-compose.yml` file.
+* The `docker-compose.yml` makes use of an external network since it is meant to be used in combination with other services that access the Mongo replica-set. To open the access to the Mongo cluster outside the Swarm overly network, you can uncomment the `Ports` section in the [`docker-compose.yml`](docker-compose.yml#L8) file.
 
-* The Mongo [health check script](mongo-healthcheck) serves the only purpose of verifying the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *Controller* service.
+* The Mongo [health check script](mongo-healthcheck) serves the only purpose of verifying the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *controller* service.
 
-* We used *secrets* to pass the MongoDB health check script to the MongoDB containers. While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
+* We used *secrets* to pass the MongoDB health check script to the MongoDB containers (see [`docker-compose.yml` line 15](docker-compose.yml#L15)). While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
 
-* If you are not sure if the *controller* is behaving correctly. Enable the `DEBUG` environment variable and check the logs of the container.
+* If you are not sure if the *controller* is behaving correctly. Enable the `DEBUG` environment variable and check the logs of the container  (uncomment [`docker-compose.yml` line 42](docker-compose.yml#L42)).
 
 * **N.B.** Don't use a service name starting with *mongo* for other services in the same stack. This may result in the controller to think that mongo is running while it is not. This is related to the way filters works in Docker (I consider it a bug). Of course, it can be fixed (see To Dos).
 
@@ -83,12 +83,12 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 - [x] The script is able to add and remove nodes dynamically according to the evolution of the swarm cluster
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
 - [x] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
+- [x] The recipe include [Nosqlclient](https://www.nosqlclient.com) as mongodb management tool.
 
 ## To do
 - [ ] Support authentication to MongoDB
 - [ ] Add utilities to launch a Swarm Cluster and allow 1 click test
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
-- [ ] Add some GUI that helps the monitoring of the cluster.
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
 
 ## Contributions
