@@ -83,7 +83,7 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 - [x] The script is able to add and remove nodes dynamically according to the evolution of the swarm cluster
 - [x] Given the about restart on failure is recommended as policy, this ensure that the scripts restart when it exit -1 and when the node where it is running is removed / drained (you need more than one master node!)
 - [x] The repository includes a basic set of Travis CI tests that tests the script behavior against basic conditions in a single swarm node and without data persistence (initialization, scale up, scale down)
-- [x] The recipe include [Nosqlclient](https://www.nosqlclient.com) as mongodb management tool.
+- [x] The recipe includes [Nosqlclient](https://www.nosqlclient.com) as mongodb management tool.
 
 ## Testing
 
