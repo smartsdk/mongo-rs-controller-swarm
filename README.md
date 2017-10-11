@@ -57,7 +57,7 @@ You can configure the following environment variables for deploying your stack u
 
 Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
 
-* To use data persistence (which we recommend in production settings), the *mongo* service needs to be deployed in **global mode** (  [`docker-compose.yml line 25`](docker-compose.yml#L25)). This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
+* To use data persistence (which we recommend in production settings), the *mongo* service needs to be deployed in **global mode** (see [`docker-compose.yml line 25`](docker-compose.yml#L25)). This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
 * The *controller* that maintains the status of the replica-set must be deployed in a single instance over a Swarm manager node (see [`docker-compose.yml line 50`](docker-compose.yml#L50)). **Multiple instances of the Controller, may perform conflicting actions!** Also, to ensure that the controller is restarted in case of error, there is a restart policy in the controller service definition in [`docker-compose.yml line 53`](docker-compose.yml#L53).
 
