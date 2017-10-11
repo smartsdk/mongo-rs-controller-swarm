@@ -7,7 +7,7 @@ services:
     environment:
       - MONGOCLIENT_DEFAULT_CONNECTION_URL=mongodb://${STACK_NAME:-mongo}_mongo:27017/?replicaSet=rs
     ports:
-      - "3000:3000"
+      - "${NOSQLCLIENT_PORT:-3000}:3000"
     networks:
         - backend
     deploy:

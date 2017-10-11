@@ -5,6 +5,8 @@ services:
   mongo:
     image: mongo:${MONGO_VERSION:-3.2}
     entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
+   # ports:
+    #  - "${MONGO_PORT:-27017}:27017"
     # The usage of volume provides persistence, but may work correctly only with 1 volume per node (that's why global mode is recommended)
     volumes:
       - mongodata:/data/db
@@ -37,7 +39,7 @@ services:
       - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
       - REPLICASET_NAME=${REPLICASET_NAME:-rs}
       - MONGO_PORT=27017
-      # - DEBUG=1 #uncomment to debug the script
+          # - DEBUG=1 #uncomment to debug the script
     entrypoint: python /src/replica_ctrl.py
     networks:
         - backend
