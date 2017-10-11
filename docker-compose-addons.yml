@@ -1,0 +1,23 @@
+version: '3.2'
+
+services:
+
+  nosqlclient:
+    image: mongoclient/mongoclient:2.2.0 #2.2.0 is the latest stable version
+    environment:
+      - MONGOCLIENT_DEFAULT_CONNECTION_URL=mongodb://${STACK_NAME:-mongo}_mongo:27017/?replicaSet=rs
+    ports:
+      - "${NOSQLCLIENT_PORT:-3000}:3000"
+    networks:
+        - backend
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role==manager]
+      restart_policy:
+        condition: on-failure
+
+networks:
+  backend:
+    external: true
