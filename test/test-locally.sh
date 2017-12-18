@@ -1,11 +1,13 @@
 #!/bin/sh
 
 oneTimeSetUp(){
-  docker network create  --opt encrypted -d overlay backend
+  miniswarm delete
+  miniswarm start 3
+  eval $(docker-machine env ms-manager0)
+  docker network create  --attachable --opt encrypted -d overlay backend
   docker stack deploy -c docker-compose.yml mongo
   docker run --name client --network=backend -d mongo:3.2 tail -f /dev/null
   echo "Created MongoDB Client"
-  eval $(docker-machine env swarm-manager)
 }
 
 # Start a new MongoDB cluster with persistence data and checks that the controller configure it correctly.
@@ -70,8 +72,8 @@ testKillMongoClusterSize(){
 # Stop Swarm-2 node
 
 testStopSwarm(){
-  docker node update swarm-2 --availability drain
-  docker node update swarm-2 --availability pause
+  docker node update ms-worker0 --availability drain
+  docker node update ms-worker0 --availability pause
   sleep 10 #time needed to kill container
   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
   assertEquals "mongo_mongo:2/2" "${result}"
@@ -95,7 +97,7 @@ testStopSwarmClusterSize(){
 
 # Re-Start Swarm-2 node
 testStartSwarm(){
-  docker node update swarm-2 --availability active
+  docker node update ms-worker0 --availability active
   sleep 120 #time needed to kill container
   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
   assertEquals "mongo_mongo:3/3" "${result}"
@@ -120,12 +122,12 @@ testStartSwarmClusterSize(){
 # Stop Swarm-Manager node
 
 testStopSwarmManager(){
-  docker node promote swarm-1
+  docker node promote ms-worker0
   docker rm -fv client
-  eval $(docker-machine env swarm-1)
+  eval $(docker-machine env ms-worker0)
   docker run --name client --network=backend -d mongo:3.2 tail -f /dev/null
-  docker node update swarm-manager --availability drain
-  docker node update swarm-manager --availability pause
+  docker node update ms-manager0 --availability drain
+  docker node update ms-manager0 --availability pause
   sleep 120 #time needed to kill container
   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
   assertEquals "mongo_mongo:2/2" "${result}"
@@ -152,11 +154,11 @@ testStopSwarmManagerClusterSize(){
 }
 
 testStopSwarmManagerRestore(){
-  docker node update swarm-manager --availability active
+  docker node update ms-manager0 --availability active
   docker rm -fv client
-  eval $(docker-machine env swarm-manager)
+  eval $(docker-machine env ms-manager0)
   docker run --name client --network=backend -d mongo:3.2 tail -f /dev/null
-  docker node demote swarm-1
+  docker node demote ms-worker0
   sleep 120 #time needed to kill container
   result=$(docker service ls -f name=mongo_mongo --format "{{.Name}}:{{.Replicas}}")
   assertEquals "mongo_mongo:3/3" "${result}"
@@ -202,12 +204,7 @@ oneTimeTearDown(){
   docker stack remove mongo
   sleep 50
   docker network rm backend
-  eval $(docker-machine env swarm-manager)
-  docker volume rm -f mongodata
-  eval $(docker-machine env swarm-1)
-  docker volume rm -f mongodata
-  eval $(docker-machine env swarm-2)
-  docker volume rm -f mongodata
+  miniswarm delete
 }
 
 # load shunit2
