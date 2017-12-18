@@ -20,7 +20,7 @@ services:
     # it simply checks that the client can connect to mongo.
     # No test is run w.r.t. the cluster.
     healthcheck:
-        test: ["CMD", "bash", "/run/secrets/mongo-healthcheck"]
+        test: ["CMD", "bash", "/mongo-healthcheck"]
         interval: 1m
         timeout: 10s
         retries: 3
