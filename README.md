@@ -55,7 +55,7 @@ You can configure the following environment variables for deploying your stack u
 * `MONGO_SERVICE_NAME`, the default value is `${STACK_NAME:}_mongo`
 
 
-Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
+Few hints, to customise the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
 
 * To use data persistence (which we recommend in production settings), the *mongo* service needs to be deployed in **global mode** (see [`docker-compose.yml line 25`](docker-compose.yml#L25)). This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
@@ -67,7 +67,7 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 
 * The Mongo [health check script](mongo-healthcheck) serves the only purpose of verifying the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *controller* service.
 
-* We used *secrets* to pass the MongoDB health check script to the MongoDB containers (see [`docker-compose.yml` line 15](docker-compose.yml#L15)). While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
+* We used *configs* to pass the MongoDB health check script to the MongoDB containers (see [`docker-compose.yml` line 15](docker-compose.yml#L15)). While this is not the original purpose of *configs*, this allows to reuse directly the official Mongo images without changes.
 
 * If you are not sure if the *controller* is behaving correctly. Enable the `DEBUG` environment variable and check the logs of the container  (uncomment [`docker-compose.yml` line 42](docker-compose.yml#L42)).
 
