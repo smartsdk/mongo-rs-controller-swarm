@@ -100,11 +100,26 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 * Your Docker client configured to point to the Docker Swarm cluster.
 
 ### Utilities
-To test the script you need to set-up a Docker Swarm cluster. Assuming that VirtualBox is installed on your Linux/MacOS system you, can use the scripts in the `utils` folder to create and manage the cluster:
-* [create-cluster.sh](utils/create-cluster.sh) creates a Docker Swarm cluster with 1 Manager and 2 Workers (you can change the number of the Workers)
-* [clean-cluster.sh](utils/clean-cluster.sh) delete the cluster
-* [stop-cluster.sh](utils/stop-cluster.sh) stop a running cluster
-* [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
+To test the script you need to set-up a Docker Swarm cluster. An easy way to do so is using [miniswarm](https://github.com/aelsabbahy/miniswarm):
+* Download and install it:
+```
+# As root
+curl -sSL https://raw.githubusercontent.com/aelsabbahy/miniswarm/master/miniswarm -o /usr/local/bin/miniswarm
+chmod +rx /usr/local/bin/miniswarm
+```
+* Create your cluster
+```
+# 1 manager 2 workers
+miniswarm start 3
+```
+* Connect to your cluster
+```
+eval $(docker-machine env ms-manager0)
+```
+* Delete your cluster
+```
+miniswarm delete
+```
 
 ### Testing
 The script [test-locally.sh](test/test-locally.sh) aims to cover the following cases (checked ones are the one covered):
@@ -121,13 +136,12 @@ You can run the test with:
 
 Tests starting with `ci-test` are designed for Travis CI, they won't run locally, unless you install as well a MongoDB Client.
 
-**N.B.:** at the moment tests assumes that nodes in the Docker Swarm cluster are named as in the scripts in the `utils` folder.
+**N.B.:** Tests creates a cluster using `miniswarm` if you already created a cluster using it, the tests will delete it and create a new one.
 
 ## To do
 - [ ] Support authentication to MongoDB
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
-- [ ] Tests are not generic in the sense that are based on the swarm node naming used in the `utils` folder
 
 ## Contributions
 Contributions are welcome in the form of pull request.
