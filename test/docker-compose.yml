@@ -10,7 +10,6 @@ services:
       networks:
         - backend
       configs:
-      # to avoid changes to the original mongo image, we import the healthcheck script using secrets
         - mongo-healthcheck
       # it simply checks that the client can connect to mongo. No test is run w.r.t. the cluster.
       healthcheck:
@@ -52,7 +51,7 @@ services:
           condition: on-failure
 
 configs:
-  # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+  # to avoid changes to the original mongo image, we import the healthcheck script using configs
   mongo-healthcheck:
     file: mongo-healthcheck
 
