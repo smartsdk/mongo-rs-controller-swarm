@@ -35,16 +35,16 @@ services:
       # TODO: Avoid exposing the docker socket (security issue)
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - OVERLAY_NETWORK_NAME=${OVERLAY_NETWORK_NAME:-backend}
+      - OVERLAY_NETWORK_NAME=${BACKEND_NETWORK_NAME:-backend}
       - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
       - REPLICASET_NAME=${REPLICASET_NAME:-rs}
       - MONGO_PORT=27017
           # - DEBUG=1 #uncomment to debug the script
     entrypoint: python /src/replica_ctrl.py
     networks:
-        - backend
+      - backend
     depends_on:
-        - "mongo"
+      - "mongo"
     deploy:
       mode: replicated
       replicas: 1
@@ -65,4 +65,5 @@ volumes:
 
 networks:
   backend:
-    external: true
+    external:
+      name: ${BACKEND_NETWORK_NAME:-backend}
