@@ -50,7 +50,7 @@ You can configure the following environment variables for deploying your stack u
 * `MONGO_VERSION`, the default value is `3.2`
 * `REPLICASET_NAME`, the default value is `rs`
 * `MONGO_PORT`, the default value is `27017`
-* `OVERLAY_NETWORK_NAME`, the default value is `backend`
+* `BACKEND_NETWORK_NAME`, the default value is `backend`
 * `STACK_NAME`, the default value is `mongo`
 * `MONGO_SERVICE_NAME`, the default value is `${STACK_NAME:}_mongo`
 
