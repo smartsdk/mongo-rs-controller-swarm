@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.3'
 
 services:
 
@@ -9,12 +9,11 @@ services:
         - "${MONGO_PORT:-27017}:27017"
       networks:
         - backend
-      secrets:
-      # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+      configs:
         - mongo-healthcheck
       # it simply checks that the client can connect to mongo. No test is run w.r.t. the cluster.
       healthcheck:
-          test: ["CMD", "bash", "/run/secrets/mongo-healthcheck"]
+          test: ["CMD", "bash", "/mongo-healthcheck"]
           interval: 1m
           timeout: 10s
           retries: 3
@@ -51,8 +50,8 @@ services:
         restart_policy:
           condition: on-failure
 
-secrets:
-  # to avoid changes to the original mongo image, we import the healthcheck script using secrets
+configs:
+  # to avoid changes to the original mongo image, we import the healthcheck script using configs
   mongo-healthcheck:
     file: mongo-healthcheck
 

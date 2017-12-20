@@ -55,7 +55,7 @@ You can configure the following environment variables for deploying your stack u
 * `MONGO_SERVICE_NAME`, the default value is `${STACK_NAME:}_mongo`
 
 
-Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
+Few hints, to customise the [`docker-compose.yml`](docker-compose.yml) orchestration according to your needs:
 
 * To use data persistence (which we recommend in production settings), the *mongo* service needs to be deployed in **global mode** (see [`docker-compose.yml line 25`](docker-compose.yml#L25)). This is to avoid that more than one instance is deployed on the same node and that different instances concurrently access the same MongoDB data space on the filesystem.
 
@@ -67,7 +67,7 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 
 * The Mongo [health check script](mongo-healthcheck) serves the only purpose of verifying the status of the MongoDB service. No check on cluster status is made. The cluster status is checked and managed by the *controller* service.
 
-* We used *secrets* to pass the MongoDB health check script to the MongoDB containers (see [`docker-compose.yml` line 15](docker-compose.yml#L15)). While this is not the original purpose of *secrets*, this allows to reuse directly the official Mongo images without changes.
+* We used *configs* to pass the MongoDB health check script to the MongoDB containers (see [`docker-compose.yml` line 15](docker-compose.yml#L15)). While this is not the original purpose of *configs*, this allows to reuse directly the official Mongo images without changes.
 
 * If you are not sure if the *controller* is behaving correctly. Enable the `DEBUG` environment variable and check the logs of the container  (uncomment [`docker-compose.yml` line 42](docker-compose.yml#L42)).
 
@@ -100,11 +100,26 @@ Few hints, to customize the [`docker-compose.yml`](docker-compose.yml) orchestra
 * Your Docker client configured to point to the Docker Swarm cluster.
 
 ### Utilities
-To test the script you need to set-up a Docker Swarm cluster. Assuming that VirtualBox is installed on your Linux/MacOS system you, can use the scripts in the `utils` folder to create and manage the cluster:
-* [create-cluster.sh](utils/create-cluster.sh) creates a Docker Swarm cluster with 1 Manager and 2 Workers (you can change the number of the Workers)
-* [clean-cluster.sh](utils/clean-cluster.sh) delete the cluster
-* [stop-cluster.sh](utils/stop-cluster.sh) stop a running cluster
-* [start-cluster.sh](utils/start-cluster.sh) start a stopped cluster
+To test the script you need to set-up a Docker Swarm cluster. An easy way to do so is using [miniswarm](https://github.com/aelsabbahy/miniswarm):
+* Download and install it:
+```
+# As root
+curl -sSL https://raw.githubusercontent.com/aelsabbahy/miniswarm/master/miniswarm -o /usr/local/bin/miniswarm
+chmod +rx /usr/local/bin/miniswarm
+```
+* Create your cluster
+```
+# 1 manager 2 workers
+miniswarm start 3
+```
+* Connect to your cluster
+```
+eval $(docker-machine env ms-manager0)
+```
+* Delete your cluster
+```
+miniswarm delete
+```
 
 ### Testing
 The script [test-locally.sh](test/test-locally.sh) aims to cover the following cases (checked ones are the one covered):
@@ -121,13 +136,12 @@ You can run the test with:
 
 Tests starting with `ci-test` are designed for Travis CI, they won't run locally, unless you install as well a MongoDB Client.
 
-**N.B.:** at the moment tests assumes that nodes in the Docker Swarm cluster are named as in the scripts in the `utils` folder.
+**N.B.:** Tests creates a cluster using `miniswarm` if you already created a cluster using it, the tests will delete it and create a new one.
 
 ## To do
 - [ ] Support authentication to MongoDB
 - [ ] Add Travis CI tests to tests mongo primary and secondary container failure
 - [ ] Improve `get_mongo_service` function to avoid conflict with other services which name start with `mongo`
-- [ ] Tests are not generic in the sense that are based on the swarm node naming used in the `utils` folder
 
 ## Contributions
 Contributions are welcome in the form of pull request.
