@@ -2,6 +2,17 @@
 
 This repository provides a dockerized controller for a Mongo DB replica-set deployed on a Docker Swarm cluster.
 
+Officially tested mongo versions:
+
+* 3.4
+* 3.2
+* 3.0
+
+Officially tested docker versions:
+
+* 17.06
+* 17.09
+
 ## How to use
 First, you need to have a Docker Swarm (docker >= 17.06.0-ce) already setup (See Testing for a local setup).
 Secondly you need to create an overlay network called `backend` (when creating the network and setting up the Swarm cluster, *be careful with MTU issues!* Locally you won't have any, but using cloud providers, you may hit several ones):
