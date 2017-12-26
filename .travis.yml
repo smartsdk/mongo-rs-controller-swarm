@@ -1,18 +1,21 @@
 language: shell
 
-services:
-  - docker
-
 install:
-  - sudo apt-get remove -y docker docker-engine docker.io
+  - sudo apt-get remove -y docker docker-engine docker.io docker-ce
+  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+  - echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
   - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-  - echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/${MONGO_VERSION} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-${MONGO_VERSION}.list
+  - echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+  - echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+  - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get -qq update
-  - sudo apt-get install -y docker-ce=${DOCKER_VERSION}
+  - sudo apt-get install -y docker-ce=${DOCKER_VERSION} --allow-downgrades
   - sudo apt-get install -y shunit2
-  - sudo apt-get install -y mongodb-org-shell=${MONGO_VERSION}
+  - sudo apt-get install -y mongodb-org-shell=${MONGO_VERSION} --allow-downgrades
   - docker build . -t martel/mongo-replica-ctrl:travis
   - docker swarm init
   - docker stack deploy -c test/docker-compose.yml ${STACK_NAME}
@@ -25,15 +28,15 @@ env:
   global:
     - STACK_NAME=mongo
   matrix:
-    - MONGO_VERSION=3.6 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-    - MONGO_VERSION=3.4 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-    - MONGO_VERSION=3.2 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-    - MONGO_VERSION=3.0 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-    - MONGO_VERSION=3.6 DOCKER_VERSION=17.09.0~ce-0~ubuntu
-    - MONGO_VERSION=3.4 DOCKER_VERSION=17.09.0~ce-0~ubuntu
-    - MONGO_VERSION=3.2 DOCKER_VERSION=17.09.0~ce-0~ubuntu
-    - MONGO_VERSION=3.0 DOCKER_VERSION=17.09.0~ce-0~ubuntu
-    - MONGO_VERSION=3.6 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
-    - MONGO_VERSION=3.4 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
-    - MONGO_VERSION=3.2 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
-    - MONGO_VERSION=3.0 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
+    - MONGO_VERSION=3.6.0 DOCKER_VERSION=17.06.2~ce-0~ubuntu
+    - MONGO_VERSION=3.4.0 DOCKER_VERSION=17.06.2~ce-0~ubuntu
+    - MONGO_VERSION=3.2.0 DOCKER_VERSION=17.06.2~ce-0~ubuntu
+    - MONGO_VERSION=3.0.0 DOCKER_VERSION=17.06.2~ce-0~ubuntu
+    - MONGO_VERSION=3.6.0 DOCKER_VERSION=17.09.0~ce-0~ubuntu
+    - MONGO_VERSION=3.4.0 DOCKER_VERSION=17.09.0~ce-0~ubuntu
+    - MONGO_VERSION=3.2.0 DOCKER_VERSION=17.09.0~ce-0~ubuntu
+    - MONGO_VERSION=3.0.0 DOCKER_VERSION=17.09.0~ce-0~ubuntu
+    - MONGO_VERSION=3.6.0 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
+    - MONGO_VERSION=3.4.0 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
+    - MONGO_VERSION=3.2.0 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
+    - MONGO_VERSION=3.0.0 DOCKER_VERSION=17.03.2~ce-0~ubuntu-trusty
