@@ -15,8 +15,17 @@ install:
   - sudo apt-get install -y mongodb-org-shell
   - docker build . -t martel/mongo-replica-ctrl:travis
   - docker swarm init
-  - docker stack deploy -c test/docker-compose.yml mongo
+  - docker stack deploy -c test/docker-compose.yml ${STACK_NAME}
 
 script:
   - sh test/ci-test-running-basic.sh
   - sh test/ci-test-scale-basic.sh
+
+env:
+  global:
+    - STACK_NAME=mongo
+  matrix:
+    - MONGO_VERSION=3.6
+    - MONGO_VERSION=3.4
+    - MONGO_VERSION=3.2
+    - MONGO_VERSION=3.0
