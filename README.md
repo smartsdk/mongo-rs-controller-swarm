@@ -1,5 +1,7 @@
 # MongoDB replica-set controller for Docker Swarm cluster
 
+[![Build Status](https://travis-ci.org/smartsdk/mongo-rs-controller-swarm.svg?branch=master)](https://travis-ci.org/smartsdk/mongo-rs-controller-swarm)
+
 This repository provides a dockerized controller for a Mongo DB replica-set deployed on a Docker Swarm cluster.
 
 Officially tested mongo versions:
