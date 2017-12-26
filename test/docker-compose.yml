@@ -32,7 +32,7 @@ services:
         # TODO: Avoid exposing the docker socket (security issue)
         - /var/run/docker.sock:/var/run/docker.sock
       environment:
-        - OVERLAY_NETWORK_NAME=${OVERLAY_NETWORK_NAME:-mongo_backend}
+        - OVERLAY_NETWORK_NAME=${STACK_NAME:-mongo}_backend}
         - MONGO_SERVICE_NAME=${STACK_NAME:-mongo}_mongo
         - REPLICASET_NAME=${REPLICASET_NAME:-rs}
         - MONGO_PORT=27017
