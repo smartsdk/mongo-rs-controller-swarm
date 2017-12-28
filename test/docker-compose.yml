@@ -4,7 +4,7 @@ services:
 
     mongo:
       image: mongo:${MONGO_VERSION:-3.2}
-      entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
+      entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles", "--bind_ip", "0.0.0.0"]
       ports:
         - "${MONGO_PORT:-27017}:27017"
       networks:
