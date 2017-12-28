@@ -4,7 +4,8 @@ services:
 
   mongo:
     image: mongo:${MONGO_VERSION:-3.2}
-    entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles"]
+    # the bind_ip option is requried from MONGO Version 3.6, alternatively you can use --bind_ip_all
+    entrypoint: [ "/usr/bin/mongod", "--replSet", "${REPLICASET_NAME:-rs}", "--journal", "--smallfiles", "--bind_ip", "0.0.0.0"]
     # ports:
     #   - "${MONGO_PORT:-27017}:27017"
     # The usage of volume provides persistence, but may work correctly only with 1 volume per node (that's why global mode is recommended)
